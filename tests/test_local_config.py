@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import stat
 
 from app.config import Settings
@@ -36,8 +37,9 @@ def test_private_config_loads_without_shell_evaluation_and_environment_wins(
     assert settings.ai_model == "test-model"
     assert load_local_config(config)["LITERAL"] == "$(this-is-not-executed)"
     assert "from-process" not in repr(settings)
-    assert stat.S_IMODE(config.stat().st_mode) == 0o600
-    assert stat.S_IMODE(settings.data_dir.stat().st_mode) == 0o700
+    if os.name != "nt":
+        assert stat.S_IMODE(config.stat().st_mode) == 0o600
+        assert stat.S_IMODE(settings.data_dir.stat().st_mode) == 0o700
 
 
 def test_hayvoz_ai_names_precede_openai_compatibility_names(

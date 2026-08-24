@@ -21,11 +21,12 @@ def test_linux_service_quotes_private_config_path(tmp_path, monkeypatch) -> None
         tmp_path / "private config" / "config.env",
     )
 
-    path = manager.install()
+    path = manager._install_linux()
     unit = path.read_text(encoding="utf-8")
 
     assert 'Environment="HAYVOZ_CONFIG_FILE=' in unit
-    assert 'private config/config.env"' in unit
+    assert "private config" in unit
+    assert 'config.env"' in unit
     assert "NoNewPrivileges=true" in unit
     assert "PrivateTmp=true" in unit
     assert ["systemctl", "--user", "enable", "--now", "hayvoz.service"] in calls
