@@ -249,6 +249,7 @@ Contribution and security reporting guidance:
 - [SECURITY.md](SECURITY.md)
 - [SUPPORT.md](SUPPORT.md)
 - [CHANGELOG.md](CHANGELOG.md)
+- [docs/specs/README.md](docs/specs/README.md)
 - [docs/BRANCHING.md](docs/BRANCHING.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/RELEASE.md](docs/RELEASE.md)
