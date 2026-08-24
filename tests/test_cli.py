@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from typer.testing import CliRunner
 
 from app.analysis.models import Analysis, AnalysisType
@@ -14,6 +16,7 @@ from app.ui.cli import app
 from tests.fakes import FakeRecorder
 
 runner = CliRunner()
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
 
 def test_cli_help_lists_phase_one_commands() -> None:
@@ -54,9 +57,10 @@ def test_assistant_requires_explicit_privacy_choice(tmp_path, monkeypatch) -> No
 
 def test_start_help_documents_optional_system_device() -> None:
     result = runner.invoke(app, ["start", "--help"], terminal_width=160)
+    output = ANSI_ESCAPE.sub("", result.stdout)
     assert result.exit_code == 0
-    assert "--system-device" in result.stdout
-    assert "Entrada virtual" in result.stdout
+    assert "--system-device" in output
+    assert "Entrada virtual" in output
 
 
 def test_analyze_previews_without_network_and_local_only_blocks_send(
