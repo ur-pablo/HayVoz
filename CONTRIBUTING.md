@@ -17,16 +17,24 @@ guides in tests, issues, commits, fixtures, screenshots, or logs.
 ## Workflow
 
 1. Open an issue for behavior, privacy-boundary, schema, or architecture changes.
-2. Add or update an ADR when a durable architectural decision changes.
-3. Add tests before or with implementation.
-4. Run `uv run pytest`, `uv run ruff check app tests`,
+2. Create a short-lived `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`,
+   `test/`, or `release/` branch. Do not develop or push directly on `main`.
+3. Add or update an ADR when a durable architectural decision changes.
+4. Add tests before or with implementation.
+5. Run `uv run python scripts/version.py check`, `uv run pytest`,
+   `uv run ruff check app tests`,
    `uv run ruff format --check app tests`, and
    `uv run python -m compileall -q app tests`.
    On macOS, also run `swift build` to compile the Safari native handler.
-5. Run `sh -n install.sh uninstall.sh scripts/package-safari-extension.sh`, a
+6. Run `sh -n install.sh uninstall.sh scripts/package-safari-extension.sh`, a
    secret scan, and `git diff --check` before
    submitting.
-6. Keep commits focused and explain migrations and privacy effects.
+7. Push the topic branch and open a pull request into `main`. Merge only after
+   required checks pass, then delete the branch.
+8. Keep commits focused and explain migrations and privacy effects.
+
+See [docs/BRANCHING.md](docs/BRANCHING.md) for branch naming, version updates,
+and the release-tag workflow.
 
 ## Design rules
 

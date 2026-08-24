@@ -232,9 +232,16 @@ service registration. See [docs/PORTABILITY.md](docs/PORTABILITY.md) and
 
 ```bash
 uv sync --extra dev
+uv run hayvoz --version
+uv run python scripts/version.py check
 uv run pytest
 uv run python -m compileall -q app tests
 ```
+
+All development uses short-lived branches and pull requests; direct development
+on `main` is not part of the workflow. See
+[docs/BRANCHING.md](docs/BRANCHING.md) for branch naming, semantic version
+updates, and signed release tags.
 
 Contribution and security reporting guidance:
 
@@ -242,6 +249,7 @@ Contribution and security reporting guidance:
 - [SECURITY.md](SECURITY.md)
 - [SUPPORT.md](SUPPORT.md)
 - [CHANGELOG.md](CHANGELOG.md)
+- [docs/BRANCHING.md](docs/BRANCHING.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/RELEASE.md](docs/RELEASE.md)
 - [docs/adr/README.md](docs/adr/README.md)

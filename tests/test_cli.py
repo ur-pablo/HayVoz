@@ -21,6 +21,12 @@ runner = CliRunner()
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
 
+def test_cli_version_reports_package_version() -> None:
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert result.stdout.strip() == cli.__version__
+
+
 def test_cli_help_lists_phase_one_commands() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0

@@ -5,6 +5,19 @@ and semantic versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Canonical semantic version source, synchronized package/browser version
+  checker and updater, and `hayvoz --version`.
+- Topic-branch and pull-request workflow with a privacy-aware PR template.
+- Tag-triggered release validation, distribution builds, checksums, and GitHub
+  release publication.
+
+### Changed
+
+- Development now occurs on short-lived branches; `main` is reserved for
+  reviewed merges.
+
 ## [0.8.0] - 2026-08-24
 
 ### Added

@@ -205,7 +205,6 @@ wheels = [
 
 [[package]]
 name = "hayvoz"
-version = "0.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "faster-whisper" },

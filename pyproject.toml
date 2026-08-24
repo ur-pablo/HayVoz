@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hayvoz"
-version = "0.8.0"
+dynamic = ["version"]
 description = "Privacy-first local meeting recorder and multilingual interview assistant"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -47,6 +47,9 @@ Repository = "https://github.com/ur-pablo/HayVoz.git"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[tool.hatch.version]
+path = "app/__init__.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -17,6 +17,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
+from app import __version__
 from app.analysis.models import AnalysisType
 from app.analysis.service import AnalysisService, AnalysisServiceError
 from app.assistant.service import (
@@ -70,6 +71,27 @@ app.add_typer(model_app, name="model")
 app.add_typer(system_app, name="system")
 app.add_typer(browser_app, name="browser")
 console = Console()
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        console.print(__version__)
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=_version_callback,
+            is_eager=True,
+            help="Muestra la versión instalada y termina.",
+        ),
+    ] = False,
+) -> None:
+    """Configura las opciones globales de HayVoz."""
 
 
 @dataclass(frozen=True, slots=True)
