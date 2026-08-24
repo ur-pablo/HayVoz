@@ -53,7 +53,7 @@ def test_assistant_requires_explicit_privacy_choice(tmp_path, monkeypatch) -> No
 
 
 def test_start_help_documents_optional_system_device() -> None:
-    result = runner.invoke(app, ["start", "--help"])
+    result = runner.invoke(app, ["start", "--help"], terminal_width=160)
     assert result.exit_code == 0
     assert "--system-device" in result.stdout
     assert "Entrada virtual" in result.stdout
