@@ -70,6 +70,37 @@ class SessionRepository:
             raise ActiveSessionError("Ya existe una sesión activa.") from error
         return self.get(session_id)
 
+    def create_completed_import(
+        self,
+        *,
+        session_id: str,
+        title: str,
+        audio_path: Path,
+    ) -> Session:
+        """Persist an already finalized local recording as a completed session."""
+        now = datetime.now(UTC).isoformat()
+        with self.database.transaction() as connection:
+            connection.execute(
+                """
+                INSERT INTO sessions (
+                    id, title, created_at, started_at, ended_at, mode, status,
+                    audio_path, local_only
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    session_id,
+                    title,
+                    now,
+                    now,
+                    now,
+                    SessionMode.RECORD.value,
+                    SessionStatus.COMPLETED.value,
+                    str(audio_path),
+                    1,
+                ),
+            )
+        return self.get(session_id)
+
     def mark_recording(self, session_id: str, pid: int) -> Session:
         with self.database.transaction() as connection:
             cursor = connection.execute(

@@ -22,6 +22,18 @@ zero processing by that provider after the user opts in.
 HayVoz never publishes user data to Git, GitHub, a web endpoint, or another user.
 Repository ignore rules exclude runtime data and common credential material.
 
+## Browser companion
+
+The Chrome/Safari companion declares no page, host, history, storage, or network
+permissions. It cannot read meeting pages. Capture starts only after a user
+gesture and native browser selection, and the extension records only shared
+audio tracks. It downloads locally; HayVoz imports only the file the user names
+and strips embedded source metadata during conversion.
+
+The browser and operating system still mediate screen/tab capture and may display
+their own UI or apply their own policies. HayVoz cannot remove that trust
+boundary.
+
 ## User control
 
 Users choose the data directory, may operate fully local-only, can uninstall the

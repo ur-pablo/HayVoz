@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "HayVoz — captura local",
+  "version": "0.7.0",
+  "description": "Captura audio elegido por el usuario sin leer páginas ni usar red.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "HayVoz"
+  }
+}

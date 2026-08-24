@@ -29,6 +29,7 @@ def test_cli_help_lists_phase_one_commands() -> None:
         "start",
         "stop",
         "sessions",
+        "import-audio",
         "transcribe",
         "transcript",
         "analyze",

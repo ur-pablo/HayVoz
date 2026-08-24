@@ -35,6 +35,8 @@ guides in tests, issues, commits, fixtures, screenshots, or logs.
 - Provider secrets stay in environment/private config and never in persistence.
 - New platforms require unit tests plus an explicit validation status.
 - Data migrations are transactional and preserve recoverable user data.
+- Browser code must retain a permission-free manifest, contain no network
+  client, avoid page metadata, and pass `tests/test_browser_extension.py`.
 
 ## Licensing
 

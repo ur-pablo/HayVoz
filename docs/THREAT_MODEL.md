@@ -12,6 +12,7 @@ logs, and model/provider choices.
 3. Explicit model-download source.
 4. User-configured AI provider after consent.
 5. Git/GitHub source distribution, which must never include runtime assets.
+6. Browser and operating-system capture picker after an explicit user gesture.
 
 ## Threats and controls
 
@@ -26,6 +27,9 @@ logs, and model/provider choices.
 | Cross-user file access | owner-only permissions where supported | platform/backup ACL configuration |
 | Corrupt/interrupted capture | transactional state and conservative recovery | final audio block may be incomplete |
 | Dependency compromise | lockfile and isolated environment | upstream/package-index compromise |
+| Extension reads browsing data | no host/page permissions, scripts, URL access, storage, or background worker | browser/runtime compromise |
+| Unintended tab capture | native picker, visible browser indicator, explicit stop, track release | user can select the wrong source |
+| Extension exfiltration | no network permission or network client; static policy tests | browser itself remains a trust boundary |
 
 ## Security invariants
 
@@ -34,3 +38,4 @@ logs, and model/provider choices.
 - No AI request without an allowed session/action.
 - No audio in AI requests.
 - No service installation without an explicit command.
+- No extension capture without a user gesture and native source selection.

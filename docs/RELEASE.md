@@ -6,12 +6,14 @@
    Markdown-link, privacy, and secret checks described in `CONTRIBUTING.md`.
 3. Confirm the Windows/Linux claims still say experimental unless hardware
    validation evidence exists.
-4. Build wheel and source distribution with `uv build`; inspect both archives to
+4. Confirm Chrome/Safari claims still say experimental unless real meeting-tab
+   capture, stop, download, import, and transcription have been manually checked.
+5. Build wheel and source distribution with `uv build`; inspect both archives to
    ensure no private data, config, caches, models, logs, or generated graphs are
    present.
-5. Sign the Git tag and future native artifacts. Publish only from a clean
+6. Sign the Git tag and future native artifacts. Publish only from a clean
    checkout of the reviewed commit.
-6. Verify checksums, license inclusion, repository metadata, and installation in
+7. Verify checksums, license inclusion, repository metadata, and installation in
    a new user profile before announcing the release.
 
 The project does not perform silent update checks. Release discovery remains an

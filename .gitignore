@@ -16,6 +16,7 @@ build/
 dist/
 *.egg-info/
 graphify-out/
+CONTEXT.md
 
 # Runtime data is private and local.
 data/

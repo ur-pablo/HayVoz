@@ -25,6 +25,10 @@ uv sync --extra dev
 uv run hayvoz doctor --skip-mic-check
 ```
 
+The optional Chrome/Safari capture companion is installed separately from the
+CLI because browser installation and signing require an explicit user action.
+See [BROWSER_EXTENSION.md](BROWSER_EXTENSION.md).
+
 ## Windows
 
 Windows support is experimental. Install Python 3.11+, FFmpeg with DirectShow,

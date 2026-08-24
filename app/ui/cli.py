@@ -33,6 +33,7 @@ from app.llm.factory import create_provider
 from app.llm.provider import LLMProvider, LLMProviderError
 from app.logging_config import configure_logging
 from app.sessions.guide import InterviewGuideStore
+from app.sessions.importer import AudioImportError, AudioImportService
 from app.sessions.models import SessionMode
 from app.sessions.service import SessionService, SessionServiceError
 from app.storage.analysis_repository import AnalysisRepository
@@ -371,6 +372,32 @@ def sessions_command(
             str(session.system_audio_path) if session.system_audio_path else "—",
         )
     console.print(table)
+
+
+@app.command("import-audio")
+def import_audio_command(
+    source: Annotated[
+        Path,
+        typer.Argument(help="Audio local exportado por la extensión u otra fuente."),
+    ],
+    title: Annotated[
+        str,
+        typer.Option("--title", help="Título privado de la sesión importada."),
+    ],
+) -> None:
+    """Convierte un audio local a FLAC y lo registra sin acceso de red."""
+    runtime = _runtime(load_ai_credentials=False)
+    try:
+        session = AudioImportService(
+            runtime.settings,
+            runtime.sessions,
+        ).import_audio(source, title=title)
+    except AudioImportError as error:
+        console.print(f"[red]No se pudo importar:[/red] {error}")
+        raise typer.Exit(1) from error
+    console.print(f"[green]Audio importado localmente[/green] — sesión {session.id}")
+    console.print(f"Audio: {session.audio_path}")
+    console.print(f"Transcribe con: hayvoz transcribe {session.id}")
 
 
 @model_app.command("download")

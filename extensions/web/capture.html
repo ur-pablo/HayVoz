@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Captura local — HayVoz</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="capture">
+      <p class="eyebrow">HAYVOZ · CAPTURA LOCAL</p>
+      <h1>Graba solo lo que eliges compartir</h1>
+      <p class="lead">
+        Al iniciar, selecciona la pestaña de la reunión y activa “compartir audio”.
+        El navegador mostrará su indicador de captura.
+      </p>
+
+      <label for="title">Título privado</label>
+      <input id="title" maxlength="120" value="Reunión desde navegador">
+
+      <div class="actions">
+        <button id="start" type="button">Elegir pestaña e iniciar</button>
+        <button id="stop" class="secondary" type="button" disabled>Detener</button>
+      </div>
+
+      <section class="status-card" aria-live="polite">
+        <span id="indicator" class="indicator"></span>
+        <p id="status">Lista para iniciar. No se ha solicitado ningún permiso.</p>
+      </section>
+
+      <details>
+        <summary>Qué guarda y qué no</summary>
+        <p>
+          Descarga audio y un comprobante JSON mínimo en tu equipo. No obtiene la
+          URL, participantes, texto de la página, cookies ni historial. No realiza
+          solicitudes de red.
+        </p>
+      </details>
+
+      <p class="next-step">
+        Después ejecuta <code>hayvoz import-audio ARCHIVO --title "Reunión"</code>.
+      </p>
+    </main>
+    <script src="capture.js"></script>
+  </body>
+</html>

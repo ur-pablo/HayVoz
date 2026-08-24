@@ -6,7 +6,10 @@ commercial support agreement.
 - Use GitHub Discussions for usage questions when enabled.
 - Use GitHub Issues for reproducible defects and feature proposals.
 - Follow [SECURITY.md](SECURITY.md) for vulnerabilities; never disclose private
-  recordings, transcripts, credentials, or exploit details in a public issue.
+recordings, transcripts, credentials, or exploit details in a public issue.
+- Independent development can be supported through
+  [Buy Me a Coffee](https://www.buymeacoffee.com/ur.pablo); payment does not buy
+  priority, access to user data, or a different license.
 
 Before requesting help, run `hayvoz doctor --skip-mic-check` and include only
 the non-sensitive result, HayVoz version, operating system, audio backend, and

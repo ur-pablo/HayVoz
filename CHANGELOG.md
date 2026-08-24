@@ -5,6 +5,31 @@ and semantic versioning.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-24
+
+### Added
+
+- Permission-free Manifest V3 capture companion shared by Chrome and Safari.
+- Explicit `hayvoz import-audio` workflow for browser downloads and other local
+  audio files.
+- Safari Xcode project packaging script and browser extension documentation.
+- GitHub and README support links for Buy Me a Coffee.
+- Git-ignored `CONTEXT.md` convention for session-local project context.
+- Agent handoff instructions that keep the local context synchronized at session
+  boundaries without committing it.
+
+### Changed
+
+- Browser-imported audio is normalized to private mono 16 kHz FLAC and persisted
+  as a completed `local_only` session.
+- Raised the project version to 0.7.0.
+
+### Security
+
+- The browser manifest declares no permissions or hosts and includes no content
+  scripts, background worker, storage, or network client.
+- Automated tests enforce the extension permission and no-network boundary.
+
 ## [0.6.0] - 2026-08-24
 
 ### Added

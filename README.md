@@ -6,6 +6,8 @@ configured AI provider only after explicit consent.
 
 > Status: macOS is hardware-validated. Windows and Linux platform adapters are
 > experimental until hardware validation and release packaging are completed.
+> Chrome and Safari capture is also experimental until manual browser/hardware
+> validation is completed.
 
 ## Principles
 
@@ -126,6 +128,19 @@ uv run hayvoz transcribe SESSION_ID --language es
 uv run hayvoz transcript SESSION_ID
 ```
 
+Capture a meeting tab with the optional Chrome/Safari companion, then import its
+download without network access:
+
+```bash
+uv run hayvoz import-audio ~/Downloads/meeting.webm --title "Browser meeting"
+uv run hayvoz transcribe SESSION_ID --language es
+```
+
+The shared Manifest V3 extension requests no page, host, history, storage, or
+network permissions. The user selects the tab through the browser's native
+capture prompt. Installation, Safari packaging, privacy boundaries, and current
+validation status are in [docs/BROWSER_EXTENSION.md](docs/BROWSER_EXTENSION.md).
+
 Run the interview Assistant locally:
 
 ```bash
@@ -209,6 +224,12 @@ Contribution and security reporting guidance:
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/RELEASE.md](docs/RELEASE.md)
 - [docs/adr/README.md](docs/adr/README.md)
+
+## Support the project
+
+If HayVoz is useful to you, you can support its independent development at
+[Buy Me a Coffee](https://www.buymeacoffee.com/ur.pablo). Contributions remain
+optional and do not change the GPLv3 license or privacy guarantees.
 
 ## License
 

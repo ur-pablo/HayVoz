@@ -1,7 +1,7 @@
 # HayVoz Evolution Specification
 
 - Status: Accepted for implementation
-- Target release: 0.6.0
+- Target release: 0.7.0
 - Date: 2026-08-24
 - License: GNU GPL v3.0 or later
 
@@ -43,8 +43,16 @@ modified program source, not the private files processed by a user.
    and architecture records suitable for a public repository.
 9. Retain Python while separating platform-specific audio and service behavior.
 10. Publish a validated `main` branch to `ur-pablo/HayVoz`.
+11. Provide an explicit, permission-free Chrome/Safari audio capture path whose
+    output can be imported and transcribed locally.
+12. Keep session-specific project context in an ignored local file.
 
-## 4. Non-goals for 0.6.0
+Session tooling reads the local context at the start and updates it before handoff.
+Tracked agent instructions define this lifecycle while prohibiting credentials,
+meeting content, participant identities, customer data, and private data paths in
+the context file.
+
+## 4. Non-goals for 0.7.0
 
 - Translating every message, help string, or document.
 - Claiming hardware-validated parity on macOS, Windows, and Linux.
@@ -54,8 +62,11 @@ modified program source, not the private files processed by a user.
 - Sending crash reports, analytics, update checks, usage metrics, or device IDs.
 - Supporting arbitrary AI SDKs in-process. The first adapter remains
   OpenAI/OpenAI-compatible behind a provider boundary.
-- Encrypting recordings at rest in 0.6.0. Permissions and isolation are enforced;
+- Encrypting recordings at rest in 0.7.0. Permissions and isolation are enforced;
   application-level encryption is scheduled as a later phase.
+- Reading meeting pages, URLs, participants, cookies, history, or browser storage.
+- Automatic meeting detection, capture, import, transcription, or publication.
+- Chrome Web Store or Safari App Store distribution in this phase.
 
 ## 5. Terminology and multilingual capability
 
@@ -214,6 +225,23 @@ that cannot be solved by isolation or a small native helper. Rust or Swift/Kotli
 helpers may later cover narrow platform integrations without rewriting the
 domain layer.
 
+### 9.1 Browser companion
+
+The browser boundary uses a shared Manifest V3 WebExtension in Chrome and Safari.
+Its manifest declares no permissions or hosts. An extension-owned page calls the
+standard display-capture API only after a user gesture, and the native picker
+remains the authority for choosing a meeting tab and audio.
+
+Only shared audio tracks enter `MediaRecorder`; video is never encoded or saved.
+The result and a minimal receipt are downloaded locally. The receipt must not
+contain a URL, host, participant, page content, cookie, account identifier, or
+HayVoz session ID. `hayvoz import-audio` accepts only an explicitly named file,
+normalizes it to private FLAC, and creates a completed `local_only` session.
+
+Chrome uses the unpacked extension during development. Safari uses Apple's Xcode
+WebExtension packaging flow. Neither path is described as store-ready or
+hardware-validated until its corresponding manual checks are completed.
+
 ## 10. Installer and distribution
 
 `install.sh` targets macOS and Linux shells. It:
@@ -246,6 +274,7 @@ must not be presented as native Windows service installation.
 - `docs/PORTABILITY.md`
 - `docs/RELEASE.md`
 - `docs/SYSTEM_EXTENSION.md`
+- `docs/BROWSER_EXTENSION.md`
 - `docs/THREAT_MODEL.md`
 - `docs/adr/README.md` and numbered ADRs
 
@@ -264,6 +293,13 @@ must not be presented as native Windows service installation.
 9. Secret and privacy scans find no committed credentials or user artifacts.
 10. The repository contains GPLv3 licensing and the listed documentation.
 11. `main` is pushed to the requested GitHub remote with a concise description.
+12. `CONTEXT.md` exists locally, is ignored by Git, and contains no secrets or
+    meeting data.
+13. The extension manifest has no permissions/hosts and its source has no
+    network client or page injection.
+14. A browser-format audio fixture imports transactionally as a completed,
+    private `local_only` session; failed conversion leaves no session or partial
+    output.
 
 ## 13. Delivery phases
 
@@ -293,7 +329,8 @@ repository metadata, CI scaffolding, and publish `main`.
 ### Phase 5 — Native packaging and validation
 
 Hardware validation on Windows/Linux, signed macOS app, Windows MSIX, Linux
-packages, auto-generated completions, and reproducible release artifacts.
+packages, Chrome/Safari manual capture validation, browser-store packaging,
+auto-generated completions, and reproducible release artifacts.
 
 ### Phase 6 — Encrypted local vault
 
