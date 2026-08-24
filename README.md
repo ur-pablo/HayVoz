@@ -212,7 +212,7 @@ Contribution and security reporting guidance:
 
 ## License
 
-Copyright (C) 2026 Pablo Urra and contributors.
+Copyright (C) 2026 Pablo Ulloa Ramos and contributors.
 
 HayVoz is free software licensed under the
 [GNU General Public License version 3 or later](LICENSE). It is distributed
