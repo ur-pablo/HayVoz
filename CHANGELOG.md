@@ -16,6 +16,7 @@ and semantic versioning.
 - `hayvoz browser install|status|uninstall`, top-level `hayvoz uninstall`, and a
   safe `uninstall.sh` that preserves all private user data.
 - Safari project postprocessor for the native handler and App Group entitlement.
+- A minimal Swift Package and macOS CI compilation for the Safari native handler.
 
 ### Changed
 

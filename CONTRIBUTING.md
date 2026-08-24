@@ -22,6 +22,7 @@ guides in tests, issues, commits, fixtures, screenshots, or logs.
 4. Run `uv run pytest`, `uv run ruff check app tests`,
    `uv run ruff format --check app tests`, and
    `uv run python -m compileall -q app tests`.
+   On macOS, also run `swift build` to compile the Safari native handler.
 5. Run `sh -n install.sh uninstall.sh scripts/package-safari-extension.sh`, a
    secret scan, and `git diff --check` before
    submitting.

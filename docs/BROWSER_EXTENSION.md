@@ -86,8 +86,9 @@ policies. A compromised local account/browser remains outside HayVoz's protectio
 ## Validation status
 
 Protocol validation, automatic processing, origin identity, no-network policy,
-and installer helpers are covered by automated tests. Real Chrome and Safari
-meeting capture still requires manual browser/hardware validation; browser,
+installer helpers, and compilation of the Safari handler as a Swift Package are
+covered by automated checks. Real Chrome and Safari meeting capture still
+requires manual browser/hardware validation; browser,
 meeting application, and operating-system policies can affect whether tab audio
 is available. A successful automated test is not evidence that a particular Meet
 session captured audible content.

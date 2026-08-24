@@ -38,3 +38,6 @@ jobs:
         run: uv run pytest
       - name: Compile
         run: uv run python -m compileall -q app tests
+      - name: Compile Safari bridge
+        if: runner.os == 'macOS'
+        run: swift build
