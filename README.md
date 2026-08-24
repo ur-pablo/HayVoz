@@ -51,11 +51,13 @@ Automated macOS/Linux installation:
 ./install.sh
 # Optional explicit additions:
 ./install.sh --with-model small --with-service
+./install.sh --with-model small --with-browser
 ```
 
-The installer does not install the background user service unless
-`--with-service` is supplied. See [docs/INSTALLATION.md](docs/INSTALLATION.md)
-for platform details and the Windows status.
+The installer does not install the background user service or browser bridge
+unless the corresponding option is supplied. See
+[docs/INSTALLATION.md](docs/INSTALLATION.md) for platform details and the Windows
+status.
 
 ## Private configuration
 
@@ -128,18 +130,21 @@ uv run hayvoz transcribe SESSION_ID --language es
 uv run hayvoz transcript SESSION_ID
 ```
 
-Capture a meeting tab with the optional Chrome/Safari companion, then import its
-download without network access:
+Capture a meeting tab with the optional Chrome/Safari companion and let HayVoz
+save and transcribe it automatically:
 
 ```bash
-uv run hayvoz import-audio ~/Downloads/meeting.webm --title "Browser meeting"
-uv run hayvoz transcribe SESSION_ID --language es
+uv run hayvoz model download --model small
+uv run hayvoz browser install
 ```
 
-The shared Manifest V3 extension requests no page, host, history, storage, or
-network permissions. The user selects the tab through the browser's native
-capture prompt. Installation, Safari packaging, privacy boundaries, and current
-validation status are in [docs/BROWSER_EXTENSION.md](docs/BROWSER_EXTENSION.md).
+The shared Manifest V3 extension requests only local `nativeMessaging`: no page,
+host, history, storage, or network permission. The user selects the tab through
+the browser's native capture prompt. On stop, the local user service imports the
+audio, runs Whisper, and persists the transcript. If the bridge or model is not
+available, the extension downloads the audio as a local fallback. Installation,
+Safari packaging, privacy boundaries, and validation status are in
+[docs/BROWSER_EXTENSION.md](docs/BROWSER_EXTENSION.md).
 
 Run the interview Assistant locally:
 
@@ -182,9 +187,25 @@ hayvoz system status
 hayvoz system uninstall
 ```
 
-The agent checks only local orphaned-session state. It does not automatically
-record, call an AI provider, open a port, or expose remote commands. Platform
-details are in [docs/SYSTEM_EXTENSION.md](docs/SYSTEM_EXTENSION.md).
+The agent checks local orphaned-session state and processes completed extension
+captures. It never starts recording, calls an AI provider, opens a port, or
+exposes remote commands. Platform details are in
+[docs/SYSTEM_EXTENSION.md](docs/SYSTEM_EXTENSION.md).
+
+## Uninstall
+
+From a source checkout:
+
+```bash
+./uninstall.sh
+# Or remove integrations but retain the installed CLI:
+./uninstall.sh --keep-tool
+```
+
+`hayvoz uninstall` removes the browser bridge and per-user service when the CLI
+must be managed separately. Both paths preserve configuration, models, sessions,
+recordings, transcripts, and the database. HayVoz never guesses that private data
+should be deleted.
 
 ## Storage and recovery
 

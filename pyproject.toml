@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hayvoz"
-version = "0.7.0"
+version = "0.8.0"
 description = "Privacy-first local meeting recorder and multilingual interview assistant"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -38,6 +38,7 @@ dev = [
 
 [project.scripts]
 hayvoz = "app.ui.cli:app"
+hayvoz-native = "app.browser.native_host:main"
 
 [project.urls]
 Homepage = "https://github.com/ur-pablo/HayVoz"

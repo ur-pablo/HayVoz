@@ -30,6 +30,10 @@ logs, and model/provider choices.
 | Extension reads browsing data | no host/page permissions, scripts, URL access, storage, or background worker | browser/runtime compromise |
 | Unintended tab capture | native picker, visible browser indicator, explicit stop, track release | user can select the wrong source |
 | Extension exfiltration | no network permission or network client; static policy tests | browser itself remains a trust boundary |
+| Forged native capture | fixed Chrome extension origin or signed Safari container/App Group; canonical UUIDs | compromised local user/browser account |
+| Inbox resource exhaustion | 384 KiB chunks, 16,384-chunk capture limit, one queued capture per service loop | many malicious captures can still consume disk |
+| Transcript disclosure to extension | status response allowlist excludes content and paths | session ID remains local metadata |
+| Destructive uninstall | uninstall removes integrations/tool only and preserves private data | users must delete retained data separately |
 
 ## Security invariants
 
@@ -39,3 +43,7 @@ logs, and model/provider choices.
 - No audio in AI requests.
 - No service installation without an explicit command.
 - No extension capture without a user gesture and native source selection.
+- No browser bridge listener or extension network client.
+- No native message from a non-allowlisted Chrome extension origin.
+- No transcript content, credential, URL, participant, or private path in browser
+  status responses.

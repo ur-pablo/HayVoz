@@ -24,11 +24,19 @@ Repository ignore rules exclude runtime data and common credential material.
 
 ## Browser companion
 
-The Chrome/Safari companion declares no page, host, history, storage, or network
-permissions. It cannot read meeting pages. Capture starts only after a user
-gesture and native browser selection, and the extension records only shared
-audio tracks. It downloads locally; HayVoz imports only the file the user names
-and strips embedded source metadata during conversion.
+The Chrome/Safari companion declares only local `nativeMessaging`: it has no page,
+host, history, storage, or network permission and cannot read meeting pages.
+Capture starts only after a user gesture and native browser selection, and the
+extension records only shared audio tracks. On stop it transfers bounded chunks
+to the same-device bridge; HayVoz automatically strips embedded source metadata,
+normalizes the audio, and transcribes with the local model. No listening port or
+remote endpoint is involved.
+
+Chrome allowlists a stable extension identity. Safari uses the containing native
+extension and a private App Group. Only processing state, session ID, segment
+count, or a sanitized error returns to the extension; transcript content and
+paths do not. A failed bridge/model operation downloads or preserves local audio
+for recovery instead of publishing it.
 
 The browser and operating system still mediate screen/tab capture and may display
 their own UI or apply their own policies. HayVoz cannot remove that trust
@@ -37,5 +45,5 @@ boundary.
 ## User control
 
 Users choose the data directory, may operate fully local-only, can uninstall the
-background user service without deleting data, and can delete or back up their
-local files directly.
+browser bridge, service, or program without deleting data, and can delete or back
+up their local files directly.

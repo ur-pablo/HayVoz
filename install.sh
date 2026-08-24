@@ -3,16 +3,18 @@
 set -eu
 
 WITH_SERVICE=0
+WITH_BROWSER=0
 WITH_MODEL=""
 ASSUME_YES=0
 RUN_DOCTOR=1
 
 usage() {
     printf '%s\n' \
-        "Usage: ./install.sh [--yes] [--with-service] [--with-model MODEL] [--no-doctor]" \
+        "Usage: ./install.sh [--yes] [--with-service] [--with-browser] [--with-model MODEL] [--no-doctor]" \
         "" \
         "  --yes               Accept installation of missing uv automatically." \
         "  --with-service      Install the optional per-user recovery service." \
+        "  --with-browser      Register the browser bridge and processing service." \
         "  --with-model MODEL  Download tiny, base, small or medium explicitly." \
         "  --no-doctor         Skip the final local diagnostic." \
         "  --help              Show this help."
@@ -25,6 +27,9 @@ while [ "$#" -gt 0 ]; do
             ;;
         --with-service)
             WITH_SERVICE=1
+            ;;
+        --with-browser)
+            WITH_BROWSER=1
             ;;
         --with-model)
             [ "$#" -ge 2 ] || { printf '%s\n' "--with-model requires a value." >&2; exit 2; }
@@ -145,8 +150,11 @@ chmod 600 "$CONFIG_FILE"
 if [ -n "$WITH_MODEL" ]; then
     "$HAYVOZ_COMMAND" model download --model "$WITH_MODEL"
 fi
-if [ "$WITH_SERVICE" -eq 1 ]; then
+if [ "$WITH_SERVICE" -eq 1 ] && [ "$WITH_BROWSER" -eq 0 ]; then
     HAYVOZ_CONFIG_FILE="$CONFIG_FILE" "$HAYVOZ_COMMAND" system install
+fi
+if [ "$WITH_BROWSER" -eq 1 ]; then
+    HAYVOZ_CONFIG_FILE="$CONFIG_FILE" "$HAYVOZ_COMMAND" browser install
 fi
 if [ "$RUN_DOCTOR" -eq 1 ]; then
     HAYVOZ_CONFIG_FILE="$CONFIG_FILE" "$HAYVOZ_COMMAND" doctor --skip-mic-check || true
@@ -156,4 +164,5 @@ printf '%s\n' \
     "HayVoz installed: $HAYVOZ_COMMAND" \
     "Private configuration: $CONFIG_FILE" \
     "Private data: $DATA_DIR" \
+    "Uninstall safely with: $SCRIPT_DIR/uninstall.sh" \
     "Run '$HAYVOZ_COMMAND devices' after ffmpeg and audio permissions are ready."

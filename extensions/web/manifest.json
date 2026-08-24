@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
   "name": "HayVoz — captura local",
-  "version": "0.7.0",
-  "description": "Captura audio elegido por el usuario sin leer páginas ni usar red.",
+  "version": "0.8.0",
+  "description": "Captura y transcribe localmente sin leer páginas ni usar red.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1KijT7sd0NmJjzUydIR1kBZZUzTvFvSIDfUCBhqGGjhA6m3J8VeZ2w+Q3TMbKkYu+2MEBgHnRFEzFzyvTnb8NsLWwoBrlK2RB6OMfFOLpAlwfeaf0OBPHDaKsv+ziWVil5MLkFzo3ygtFNlrHC0usjgMu088I3G2mx/LMZPPt74M5PPHCtcp3Coz47G9zoTNyaTurF9vfDRdfrDxw80YPaI0zxd2kSns1ytMFf8+RIg0vKKM1iTmNn7S7RfmFOjhrqzcHPwsAv6bT6DMXPbB63/a0kkZvfeJfSsqNcpfp+HzyGWE49yEHaadD5B71JqYGxZAZd7UmDfze5hzp3F4+wIDAQAB",
+  "permissions": ["nativeMessaging"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "HayVoz"

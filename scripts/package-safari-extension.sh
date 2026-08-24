@@ -25,4 +25,6 @@ xcrun safari-web-extension-packager "$SOURCE_DIR" \
   --copy-resources \
   --no-open
 
+python3 "$PROJECT_ROOT/scripts/configure-safari-project.py" "$OUTPUT_DIR"
+
 echo "Proyecto Safari generado en: $OUTPUT_DIR"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from types import SimpleNamespace
 
 from typer.testing import CliRunner
 
@@ -12,6 +13,7 @@ from app.storage.database import Database
 from app.storage.repository import SessionRepository
 from app.storage.transcript_repository import TranscriptRepository
 from app.transcription.models import TranscriptSegment
+from app.ui import cli
 from app.ui.cli import app
 from tests.fakes import FakeRecorder
 
@@ -35,6 +37,8 @@ def test_cli_help_lists_phase_one_commands() -> None:
         "analyze",
         "assistant",
         "report",
+        "browser",
+        "uninstall",
     ):
         assert command in result.stdout
 
@@ -62,6 +66,20 @@ def test_start_help_documents_optional_system_device() -> None:
     assert result.exit_code == 0
     assert "--system-device" in output
     assert "Entrada virtual" in output
+
+
+def test_uninstall_removes_integrations_but_does_not_delete_data(monkeypatch) -> None:
+    calls: list[str] = []
+    browser = SimpleNamespace(uninstall=lambda: calls.append("browser"))
+    service = SimpleNamespace(uninstall=lambda: calls.append("service"))
+    monkeypatch.setattr(cli, "_browser_integration", lambda: browser)
+    monkeypatch.setattr(cli, "_system_service", lambda: service)
+
+    result = runner.invoke(app, ["uninstall"])
+
+    assert result.exit_code == 0
+    assert calls == ["browser", "service"]
+    assert "se conservaron" in result.stdout
 
 
 def test_analyze_previews_without_network_and_local_only_blocks_send(

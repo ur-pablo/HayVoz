@@ -12,11 +12,14 @@ Useful options:
 ```bash
 ./install.sh --with-model small
 ./install.sh --with-service
-./install.sh --yes --with-model small --with-service
+./install.sh --with-model small --with-browser
+./install.sh --yes --with-model small --with-browser
 ```
 
-The service is not installed by default, and model download occurs only with
-`--with-model` because it is a large, explicit network operation.
+The service and browser bridge are not installed by default, and model download
+occurs only with `--with-model` because it is a large, explicit network operation.
+`--with-browser` registers the Chrome native host and installs the local processor;
+the extension itself is still loaded by the user in Chrome or packaged in Xcode.
 
 Manual development setup:
 
@@ -28,6 +31,17 @@ uv run hayvoz doctor --skip-mic-check
 The optional Chrome/Safari capture companion is installed separately from the
 CLI because browser installation and signing require an explicit user action.
 See [BROWSER_EXTENSION.md](BROWSER_EXTENSION.md).
+
+## Uninstall
+
+```bash
+./uninstall.sh
+./uninstall.sh --keep-tool  # keep the CLI, remove integrations
+```
+
+The script first removes browser registrations and the per-user service. It then
+removes the isolated `uv` tool unless `--keep-tool` is present. It always preserves
+private configuration, models, recordings, transcripts, and SQLite data.
 
 ## Windows
 

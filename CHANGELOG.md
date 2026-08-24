@@ -5,11 +5,39 @@ and semantic versioning.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-24
+
+### Added
+
+- Automatic browser capture ingestion and offline transcription through a local
+  native-messaging bridge; manual import/transcribe commands are no longer needed.
+- Owner-only, bounded browser inbox protocol with allowlisted Chrome identity and
+  a Safari App Group native handler.
+- `hayvoz browser install|status|uninstall`, top-level `hayvoz uninstall`, and a
+  safe `uninstall.sh` that preserves all private user data.
+- Safari project postprocessor for the native handler and App Group entitlement.
+
+### Changed
+
+- The per-user service now processes completed browser captures in addition to
+  recovering interrupted local sessions.
+- Successful browser processing removes raw inbox chunks; failures preserve a
+  local audio fallback for recovery.
+- Raised the project version to 0.8.0.
+
+### Security
+
+- The extension declares only `nativeMessaging`; it still has no page/host,
+  history, storage, content-script, background-worker, or network capability.
+- Native messages use canonical UUID paths, 384 KiB chunks, sanitized status
+  responses, a fixed Chrome origin allowlist, and owner-only local files.
+
 ## [0.7.0] - 2026-08-24
 
 ### Added
 
-- Permission-free Manifest V3 capture companion shared by Chrome and Safari.
+- Initially permission-free Manifest V3 capture companion shared by Chrome and
+  Safari; superseded in 0.8.0 by the local native-messaging bridge.
 - Explicit `hayvoz import-audio` workflow for browser downloads and other local
   audio files.
 - Safari Xcode project packaging script and browser extension documentation.

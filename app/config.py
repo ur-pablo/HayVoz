@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -130,9 +131,26 @@ class Settings:
             self.guides_dir,
             self.models_dir,
             self.logs_dir,
+            self.browser_inbox_dir,
         ):
             secure_directory(directory)
         secure_file(self.config_path)
+
+    @property
+    def browser_inbox_dir(self) -> Path:
+        return self.data_dir / "browser-inbox"
+
+    def browser_inbox_roots(self) -> tuple[Path, ...]:
+        roots = [self.browser_inbox_dir]
+        if sys.platform == "darwin":
+            roots.append(
+                Path.home()
+                / "Library"
+                / "Group Containers"
+                / "group.com.urpablo.hayvoz"
+                / "browser-inbox"
+            )
+        return tuple(roots)
 
     def whisper_model_path(self, model: str | None = None) -> Path:
         return self.models_dir / f"faster-whisper-{model or self.whisper_model}"

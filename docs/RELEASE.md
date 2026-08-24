@@ -7,7 +7,8 @@
 3. Confirm the Windows/Linux claims still say experimental unless hardware
    validation evidence exists.
 4. Confirm Chrome/Safari claims still say experimental unless real meeting-tab
-   capture, stop, download, import, and transcription have been manually checked.
+   capture, stop, native transfer, automatic import, and transcription have been
+   manually checked. Also exercise the local-download fallback.
 5. Build wheel and source distribution with `uv build`; inspect both archives to
    ensure no private data, config, caches, models, logs, or generated graphs are
    present.

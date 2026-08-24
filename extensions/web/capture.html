@@ -25,20 +25,21 @@
 
       <section class="status-card" aria-live="polite">
         <span id="indicator" class="indicator"></span>
-        <p id="status">Lista para iniciar. No se ha solicitado ningún permiso.</p>
+        <p id="status">Comprobando el procesador local…</p>
       </section>
 
       <details>
         <summary>Qué guarda y qué no</summary>
         <p>
-          Descarga audio y un comprobante JSON mínimo en tu equipo. No obtiene la
-          URL, participantes, texto de la página, cookies ni historial. No realiza
-          solicitudes de red.
+          Envía el audio solo al proceso local de HayVoz, que lo importa y
+          transcribe offline. No obtiene URL, participantes, texto de la página,
+          cookies ni historial. No realiza solicitudes de red.
         </p>
       </details>
 
       <p class="next-step">
-        Después ejecuta <code>hayvoz import-audio ARCHIVO --title "Reunión"</code>.
+        La transcripción se guarda automáticamente. Si el puente no está
+        disponible, HayVoz descarga el audio como respaldo para no perderlo.
       </p>
     </main>
     <script src="capture.js"></script>

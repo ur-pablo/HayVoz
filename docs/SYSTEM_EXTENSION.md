@@ -1,7 +1,8 @@
 # Operating-system Extension
 
-The optional user service runs `hayvoz system run` and performs only local
-orphan-session recovery every ten seconds.
+The optional user service runs `hayvoz system run`. Every two seconds it performs
+local orphan-session recovery and processes completed browser captures from an
+owner-only inbox.
 
 ```bash
 hayvoz system install
@@ -9,10 +10,12 @@ hayvoz system status
 hayvoz system uninstall
 ```
 
-It does not record automatically, invoke AI, open a port, accept remote commands,
-or require root. The long-lived runtime explicitly discards AI credentials while
-loading its settings. The config file path may be embedded in the service
-definition; credentials are not.
+It does not start recording, invoke an AI provider, open a port, accept remote
+commands, or require root. Browser processing imports audio and runs the local
+Whisper model only after the user finishes an explicit extension capture. The
+long-lived runtime explicitly discards AI credentials while loading its settings.
+The config file path may be embedded in the service definition; credentials are
+not.
 
 - macOS uses `~/Library/LaunchAgents`, consistent with Apple's per-user launch
   agent model: <https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html>.

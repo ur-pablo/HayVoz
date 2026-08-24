@@ -1,7 +1,7 @@
 # HayVoz Evolution Specification
 
 - Status: Accepted for implementation
-- Target release: 0.7.0
+- Target release: 0.8.0
 - Date: 2026-08-24
 - License: GNU GPL v3.0 or later
 
@@ -43,16 +43,18 @@ modified program source, not the private files processed by a user.
    and architecture records suitable for a public repository.
 9. Retain Python while separating platform-specific audio and service behavior.
 10. Publish a validated `main` branch to `ur-pablo/HayVoz`.
-11. Provide an explicit, permission-free Chrome/Safari audio capture path whose
-    output can be imported and transcribed locally.
+11. Provide an explicit Chrome/Safari audio capture path that automatically
+    saves, imports, and transcribes through an allowlisted local native bridge.
 12. Keep session-specific project context in an ignored local file.
+13. Provide an uninstall path that removes executables and integrations while
+    preserving private user data.
 
 Session tooling reads the local context at the start and updates it before handoff.
 Tracked agent instructions define this lifecycle while prohibiting credentials,
 meeting content, participant identities, customer data, and private data paths in
 the context file.
 
-## 4. Non-goals for 0.7.0
+## 4. Non-goals for 0.8.0
 
 - Translating every message, help string, or document.
 - Claiming hardware-validated parity on macOS, Windows, and Linux.
@@ -62,10 +64,11 @@ the context file.
 - Sending crash reports, analytics, update checks, usage metrics, or device IDs.
 - Supporting arbitrary AI SDKs in-process. The first adapter remains
   OpenAI/OpenAI-compatible behind a provider boundary.
-- Encrypting recordings at rest in 0.7.0. Permissions and isolation are enforced;
+- Encrypting recordings at rest in 0.8.0. Permissions and isolation are enforced;
   application-level encryption is scheduled as a later phase.
 - Reading meeting pages, URLs, participants, cookies, history, or browser storage.
-- Automatic meeting detection, capture, import, transcription, or publication.
+- Automatic meeting detection, capture start, or publication. Import and local
+  transcription are automatic only after the user explicitly records and stops.
 - Chrome Web Store or Safari App Store distribution in this phase.
 
 ## 5. Terminology and multilingual capability
@@ -101,7 +104,7 @@ Locale selection order:
 4. `en`
 
 Unknown locales fall back to English. The catalog and resolver are designed for
-later full-message translation, but 0.6.0 localizes only the feature term and
+later full-message translation, but this release localizes only the feature term and
 exposes aliases that route to the same implementation.
 
 ### 5.3 Compatibility migration
@@ -188,10 +191,10 @@ HayVoz exposes an optional `system` command group:
 - `hayvoz system status`
 - `hayvoz system run`
 
-The installed component is a per-user background recovery agent. It periodically
-checks local session state and recovers orphaned recorder processes. It does not
-record automatically, contact a provider, expose a network port, or accept remote
-commands.
+The installed component is a per-user background recovery and browser-processing
+agent. It periodically recovers orphaned recorder processes and consumes completed
+captures from owner-only inbox directories. It does not start recording, contact
+an AI provider, expose a network port, or accept remote commands.
 
 Adapters:
 
@@ -204,7 +207,7 @@ use absolute executable/config paths and must never embed credentials.
 
 ## 9. Cross-platform strategy and language decision
 
-Python remains the implementation language for 0.6.0. The application logic,
+Python remains the implementation language for 0.8.0. The application logic,
 SQLite, Typer CLI, provider boundary, and faster-whisper integration are portable.
 The current limitations come from platform-specific capture and process control,
 not from Python itself.
@@ -228,19 +231,27 @@ domain layer.
 ### 9.1 Browser companion
 
 The browser boundary uses a shared Manifest V3 WebExtension in Chrome and Safari.
-Its manifest declares no permissions or hosts. An extension-owned page calls the
-standard display-capture API only after a user gesture, and the native picker
-remains the authority for choosing a meeting tab and audio.
+It declares only `nativeMessaging`: no page/host/history/storage permission,
+content script, background worker, or network client. An extension-owned page
+calls the standard display-capture API only after a user gesture, and the native
+picker remains the authority for choosing a meeting tab and audio.
 
 Only shared audio tracks enter `MediaRecorder`; video is never encoded or saved.
-The result and a minimal receipt are downloaded locally. The receipt must not
-contain a URL, host, participant, page content, cookie, account identifier, or
-HayVoz session ID. `hayvoz import-audio` accepts only an explicitly named file,
-normalizes it to private FLAC, and creates a completed `local_only` session.
+When capture stops, the extension sends bounded chunks to the local native host.
+Chrome accepts messages only from the stable, allowlisted extension identity.
+Safari writes through its sandboxed native extension into a named App Group.
+Neither bridge opens a port or receives network traffic.
+
+The user service assembles the chunks, normalizes audio to private mono 16 kHz
+FLAC, creates a completed session, runs configured local Whisper transcription,
+and stores the transcript without a manual import/transcribe step. Successful
+processing removes raw inbox chunks; failure preserves a local audio fallback.
+Only status, session ID, segment count, or a sanitized error returns to the
+extension—never transcript content, credentials, URLs, participants, or paths.
 
 Chrome uses the unpacked extension during development. Safari uses Apple's Xcode
-WebExtension packaging flow. Neither path is described as store-ready or
-hardware-validated until its corresponding manual checks are completed.
+WebExtension packaging flow plus an App Group. Neither path is described as
+store-ready or hardware-validated until its manual checks are completed.
 
 ## 10. Installer and distribution
 
@@ -251,8 +262,14 @@ hardware-validated until its corresponding manual checks are completed.
 3. installs the application in an isolated environment;
 4. creates the private configuration and data directories;
 5. sets restrictive permissions;
-6. optionally installs the per-user system service;
-7. runs `hayvoz doctor`.
+6. optionally registers the browser bridge and per-user processing service;
+7. optionally installs the per-user recovery service;
+8. runs `hayvoz doctor`.
+
+`uninstall.sh` removes the registered browser bridge, user service, and—unless
+`--keep-tool` is supplied—the isolated CLI installation. It never deletes private
+configuration, models, recordings, transcripts, or SQLite state. Deleting private
+data remains a separate, deliberate user action.
 
 Windows installation is documented separately and is prepared for a future
 native PowerShell/MSIX installer. A shell script executed through WSL or Git Bash
@@ -295,11 +312,16 @@ must not be presented as native Windows service installation.
 11. `main` is pushed to the requested GitHub remote with a concise description.
 12. `CONTEXT.md` exists locally, is ignored by Git, and contains no secrets or
     meeting data.
-13. The extension manifest has no permissions/hosts and its source has no
-    network client or page injection.
+13. The extension manifest has only `nativeMessaging`, no page/host permissions,
+    and its source has no network client or page injection.
 14. A browser-format audio fixture imports transactionally as a completed,
     private `local_only` session; failed conversion leaves no session or partial
     output.
+15. Stopping an extension capture queues automatic local import/transcription and
+    returns a persisted session result without manual CLI commands.
+16. Browser messages use bounded chunks, canonical UUID paths, an allowlisted
+    Chrome origin or Safari App Group, and owner-only local files.
+17. Uninstall removes program integrations but preserves all private user data.
 
 ## 13. Delivery phases
 

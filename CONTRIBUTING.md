@@ -22,7 +22,8 @@ guides in tests, issues, commits, fixtures, screenshots, or logs.
 4. Run `uv run pytest`, `uv run ruff check app tests`,
    `uv run ruff format --check app tests`, and
    `uv run python -m compileall -q app tests`.
-5. Run `sh -n install.sh`, a secret scan, and `git diff --check` before
+5. Run `sh -n install.sh uninstall.sh scripts/package-safari-extension.sh`, a
+   secret scan, and `git diff --check` before
    submitting.
 6. Keep commits focused and explain migrations and privacy effects.
 
@@ -35,8 +36,13 @@ guides in tests, issues, commits, fixtures, screenshots, or logs.
 - Provider secrets stay in environment/private config and never in persistence.
 - New platforms require unit tests plus an explicit validation status.
 - Data migrations are transactional and preserve recoverable user data.
-- Browser code must retain a permission-free manifest, contain no network
-  client, avoid page metadata, and pass `tests/test_browser_extension.py`.
+- Browser code may declare only `nativeMessaging`; it must retain no page/host,
+  history, storage, content-script, or network capability and must pass
+  `tests/test_browser_extension.py` plus the browser inbox/processor tests.
+- Native bridge changes must preserve canonical capture IDs, bounded messages,
+  the Chrome origin allowlist, Safari App Group isolation, and sanitized replies.
+- Uninstall behavior must preserve private user data unless a separate, explicit
+  destructive data-removal feature is designed and approved.
 
 ## Licensing
 

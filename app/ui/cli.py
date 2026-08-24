@@ -27,6 +27,11 @@ from app.assistant.service import (
 from app.audio.assistant_recorder import AssistantRecorder
 from app.audio.devices import list_audio_devices
 from app.audio.recorder import FFmpegRecorder
+from app.browser.integration import (
+    BrowserIntegrationError,
+    BrowserIntegrationManager,
+)
+from app.browser.processor import BrowserProcessor
 from app.config import Settings
 from app.i18n import assistant_aliases, assistant_term
 from app.llm.factory import create_provider
@@ -60,8 +65,10 @@ app = typer.Typer(
 )
 model_app = typer.Typer(help="Administra modelos Whisper locales.")
 system_app = typer.Typer(help="Integra HayVoz como servicio privado del usuario.")
+browser_app = typer.Typer(help="Integra la extensión con la transcripción local.")
 app.add_typer(model_app, name="model")
 app.add_typer(system_app, name="system")
+app.add_typer(browser_app, name="browser")
 console = Console()
 
 
@@ -122,6 +129,13 @@ def _system_service() -> SystemServiceManager:
     return SystemServiceManager(Path(sys.argv[0]), settings.config_path)
 
 
+def _browser_integration() -> BrowserIntegrationManager:
+    settings = Settings.from_env(load_ai_credentials=False)
+    suffix = ".exe" if os.name == "nt" else ""
+    native_executable = Path(sys.argv[0]).resolve().with_name(f"hayvoz-native{suffix}")
+    return BrowserIntegrationManager(native_executable, settings.config_path)
+
+
 @system_app.command("install")
 def system_install() -> None:
     """Instala el agente local para el usuario actual; no abre puertos."""
@@ -159,6 +173,11 @@ def system_run(
     if config is not None:
         os.environ["HAYVOZ_CONFIG_FILE"] = str(config.expanduser().resolve())
     runtime = _runtime(load_ai_credentials=False)
+    browser_processor = BrowserProcessor(
+        runtime.settings,
+        runtime.database,
+        runtime.sessions,
+    )
     stop_event = threading.Event()
 
     def request_stop(_number: int, _frame: object) -> None:
@@ -168,7 +187,55 @@ def system_run(
     signal.signal(signal.SIGTERM, request_stop)
     while not stop_event.is_set():
         runtime.session_service.recover_orphans()
-        stop_event.wait(10.0)
+        browser_processor.process_pending()
+        stop_event.wait(2.0)
+
+
+@browser_app.command("install")
+def browser_install() -> None:
+    """Registra el puente nativo y activa el procesador privado del usuario."""
+    integration = _browser_integration()
+    service = _system_service()
+    try:
+        manifests = integration.install()
+        service_path = service.install()
+    except (BrowserIntegrationError, SystemServiceError) as error:
+        integration.uninstall()
+        console.print(f"[red]No se pudo instalar el puente:[/red] {error}")
+        raise typer.Exit(1) from error
+    console.print("[green]Puente privado del navegador instalado.[/green]")
+    for manifest in manifests:
+        console.print(f"Manifest: {manifest}")
+    console.print(f"Procesador local: {service_path}")
+
+
+@browser_app.command("uninstall")
+def browser_uninstall() -> None:
+    """Desregistra el host del navegador sin borrar sesiones ni transcripciones."""
+    _browser_integration().uninstall()
+    console.print("[green]Puente del navegador desinstalado.[/green]")
+    console.print("Los datos privados y el servicio de recuperación se conservaron.")
+
+
+@browser_app.command("status")
+def browser_status() -> None:
+    """Muestra si Chrome tiene registrado el host nativo local."""
+    status = _browser_integration().status()
+    if not status.installed:
+        console.print("[yellow]Puente del navegador no instalado.[/yellow]")
+        return
+    console.print("[green]Puente del navegador instalado.[/green]")
+    for manifest in status.manifests:
+        console.print(str(manifest))
+
+
+@app.command("uninstall")
+def uninstall_command() -> None:
+    """Elimina integraciones y servicios; conserva todos los datos privados."""
+    _browser_integration().uninstall()
+    _system_service().uninstall()
+    console.print("[green]Integraciones de HayVoz desinstaladas.[/green]")
+    console.print("Sesiones, transcripciones, modelos y configuración se conservaron.")
 
 
 @app.command()
