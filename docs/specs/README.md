@@ -27,3 +27,5 @@ a specification.
 | Spec | Version | Status | Summary |
 | --- | --- | --- | --- |
 | [0001](0001-extension-icon-live-transcription.md) | 0.1.0 | Proposed | Extension-icon controls, transcript-only retention, and a path to live transcription |
+| [0002](0002-extension-automatic-updates.md) | 0.1.0 | Proposed | Signed browser-extension updates without repeated manual loading |
+| [0003](0003-automatic-realtime-transcription.md) | 0.1.0 | Proposed | Implementation steps for automatic local transcription and live popup rendering |
