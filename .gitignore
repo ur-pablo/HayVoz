@@ -1,0 +1,31 @@
+.DS_Store
+.env
+*.env
+!.env.example
+config.env
+.idea/
+.vscode/
+.pytest_cache/
+.ruff_cache/
+.venv/
+__pycache__/
+*.py[cod]
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+graphify-out/
+
+# Runtime data is private and local.
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.flac
+
+# Common local credential material.
+*.pem
+*.key
+*.p12
+credentials.json
