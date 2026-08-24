@@ -1,25 +1,42 @@
 # Architecture
 
-HayVoz is a modular Python monolith with explicit boundaries:
+HayVoz is a modular Python monolith with a local Core and optional integration
+boundaries:
 
 1. `app/ui`: Typer CLI and rendering.
 2. `app/sessions`: session lifecycle and recovery.
 3. `app/audio`: FFmpeg capture and chunk finalization.
 4. `app/transcription`: local faster-whisper processing.
-5. `app/analysis` and `app/assistant`: reviewed and incremental reasoning.
-6. `app/llm`: provider-neutral contracts and configured adapter factory.
-7. `app/storage`: SQLite repositories and migrations.
-8. `app/config.py` and `app/local_config.py`: private configuration boundary.
-9. `app/platform_support.py` and `app/system_service.py`: OS-specific adapters.
-10. `app/browser`: bounded native inbox, browser registration, and automatic
+5. `app/core`: fact-only `SessionContextService` for external consumers.
+6. `app/analysis` and `app/assistant`: optional external intelligence workflows.
+7. `app/llm`: provider-neutral contracts and the optional OpenAI adapter.
+8. `app/storage`: SQLite repositories and migrations.
+9. `app/config.py` and `app/local_config.py`: private configuration boundary.
+10. `app/platform_support.py` and `app/system_service.py`: OS-specific adapters.
+11. `app/browser`: bounded native inbox, browser registration, and automatic
     local import/transcription processor.
-11. `extensions/web` and `extensions/safari`: shared capture UI plus platform
+12. `app/integrations`: optional OpenAI and experimental MCP boundaries.
+13. `extensions/web` and `extensions/safari`: shared capture UI plus platform
     native messaging adapters.
 
-The CLI constructs a runtime and injects repositories/services. Audio and text
-processing do not depend on the UI. External AI calls are reachable only through
-an explicit provider boundary and consent checks. The optional system agent
-performs local orphan recovery and exposes no socket.
+The CLI constructs a runtime and injects repositories/services. Audio, local
+transcription, storage, session lifecycle, guides, and `SessionContextService` do
+not require an LLM or the OpenAI SDK. External intelligence is reachable only
+through an explicit optional integration and consent checks. The optional system
+agent performs local orphan recovery and exposes no socket.
+
+The supported local data flow is:
+
+```text
+Audio -> faster-whisper -> SQLite -> SessionContextService
+                                      |              |
+                                      v              v
+                             optional OpenAI     experimental MCP
+```
+
+`SessionContextService` is the only supported read boundary for external
+consumers. It returns facts, not summaries, decisions, pain points, or other
+generative inferences.
 
 The browser companion reaches the application only through native messaging—no
 HTTP server or listening socket. Chrome invokes the installed `hayvoz-native`

@@ -33,7 +33,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     python_ok = sys.version_info >= (3, 11)
     checks.append(
         DoctorCheck(
-            "Python",
+            "CORE / Python",
             CheckLevel.OK if python_ok else CheckLevel.ERROR,
             sys.version.split()[0],
             "Instala Python 3.11 o superior." if not python_ok else "",
@@ -43,7 +43,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     ffmpeg_path = shutil.which(settings.ffmpeg)
     checks.append(
         DoctorCheck(
-            "ffmpeg",
+            "CORE / ffmpeg",
             CheckLevel.OK if ffmpeg_path else CheckLevel.ERROR,
             ffmpeg_path or "no encontrado",
             "Instálalo manualmente (por ejemplo, brew install ffmpeg)."
@@ -60,7 +60,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
             )
             checks.append(
                 DoctorCheck(
-                    "Dispositivos de audio",
+                    "CORE / Dispositivos de audio",
                     CheckLevel.OK if devices else CheckLevel.ERROR,
                     f"{len(devices)} detectado(s)",
                     f"Revisa permisos y la entrada {settings.audio_backend}."
@@ -71,7 +71,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
         except RuntimeError as error:
             checks.append(
                 DoctorCheck(
-                    "Dispositivos de audio",
+                    "CORE / Dispositivos de audio",
                     CheckLevel.ERROR,
                     str(error),
                     f"Revisa la configuración del backend {settings.audio_backend}.",
@@ -80,7 +80,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     else:
         checks.append(
             DoctorCheck(
-                "Dispositivos de audio",
+                "CORE / Dispositivos de audio",
                 CheckLevel.ERROR,
                 "no comprobados sin ffmpeg",
             )
@@ -90,7 +90,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     is_avfoundation = settings.audio_backend == "avfoundation"
     checks.append(
         DoctorCheck(
-            "Audio de sistema",
+            "CORE / Audio de sistema",
             CheckLevel.OK if loopbacks else CheckLevel.WARNING,
             (
                 ", ".join(f"{item.index}: {item.name}" for item in loopbacks)
@@ -136,7 +136,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
         )
         checks.append(
             DoctorCheck(
-                "Acceso al micrófono",
+                "CORE / Acceso al micrófono",
                 CheckLevel.OK if ok else CheckLevel.ERROR,
                 detail,
                 "Habilita el micrófono para Terminal en Ajustes > "
@@ -148,7 +148,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     else:
         checks.append(
             DoctorCheck(
-                "Acceso al micrófono",
+                "CORE / Acceso al micrófono",
                 CheckLevel.WARNING,
                 "prueba omitida" if not probe_mic else "no comprobable",
             )
@@ -157,7 +157,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     whisper_installed = importlib.util.find_spec("faster_whisper") is not None
     checks.append(
         DoctorCheck(
-            "faster-whisper",
+            "CORE / faster-whisper",
             CheckLevel.OK if whisper_installed else CheckLevel.ERROR,
             "instalado" if whisper_installed else "ausente",
             "Ejecuta uv sync --extra dev." if not whisper_installed else "",
@@ -182,7 +182,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
         model_suggestion = "Configura tiny, base, small o medium."
     checks.append(
         DoctorCheck(
-            "Modelo Whisper",
+            "CORE / Modelo Whisper",
             CheckLevel.OK if model_ready else CheckLevel.WARNING,
             model_detail,
             model_suggestion,
@@ -198,7 +198,7 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     )
     checks.append(
         DoctorCheck(
-            "Espacio disponible",
+            "CORE / Espacio disponible",
             disk_level,
             f"{free_gib:.1f} GiB en {settings.data_dir}",
             "Libera al menos 2 GiB antes de una entrevista larga."
@@ -210,9 +210,9 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     try:
         with sqlite3.connect(settings.database_path) as connection:
             version = connection.execute("SELECT sqlite_version()").fetchone()[0]
-        checks.append(DoctorCheck("SQLite", CheckLevel.OK, version))
+        checks.append(DoctorCheck("CORE / SQLite", CheckLevel.OK, version))
     except sqlite3.Error as error:
-        checks.append(DoctorCheck("SQLite", CheckLevel.ERROR, str(error)))
+        checks.append(DoctorCheck("CORE / SQLite", CheckLevel.ERROR, str(error)))
 
     for dependency in (
         "typer",
@@ -220,12 +220,11 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
         "pydantic",
         "ctranslate2",
         "onnxruntime",
-        "openai",
     ):
         installed = importlib.util.find_spec(dependency) is not None
         checks.append(
             DoctorCheck(
-                f"Dependencia {dependency}",
+                f"CORE / Dependencia {dependency}",
                 CheckLevel.OK if installed else CheckLevel.ERROR,
                 "instalada" if installed else "ausente",
                 "Ejecuta uv sync --extra dev." if not installed else "",
@@ -236,19 +235,32 @@ def run_doctor(settings: Settings, *, probe_mic: bool = True) -> list[DoctorChec
     model = settings.ai_model
     checks.append(
         DoctorCheck(
-            "Proveedor de IA",
+            "OPTIONAL / OpenAI",
             CheckLevel.OK if api_key and model else CheckLevel.WARNING,
             "configurado"
             if api_key and model
-            else "opcional; configuración incompleta",
-            "Define HAYVOZ_AI_API_KEY y HAYVOZ_AI_MODEL antes de usar analyze."
+            else "no configurado; integración opcional",
+            "Instala hayvoz[openai] y define credenciales sólo si usarás analyze."
             if not (api_key and model)
             else "",
         )
     )
+    mcp_installed = importlib.util.find_spec("mcp") is not None
     checks.append(
         DoctorCheck(
-            "Assistant batching",
+            "OPTIONAL / MCP",
+            CheckLevel.OK if mcp_installed else CheckLevel.WARNING,
+            "disponible" if mcp_installed else "no instalado",
+            (
+                "Instala hayvoz[mcp] para ejecutar hayvoz mcp."
+                if not mcp_installed
+                else ""
+            ),
+        )
+    )
+    checks.append(
+        DoctorCheck(
+            "CORE / Assistant batching",
             CheckLevel.OK,
             (
                 f"chunks={settings.assistant_chunk_seconds}s, "

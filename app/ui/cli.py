@@ -9,7 +9,7 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -34,9 +34,9 @@ from app.browser.integration import (
 )
 from app.browser.processor import BrowserProcessor
 from app.config import Settings
+from app.core.session_context import SessionContextError, SessionContextService
 from app.i18n import assistant_aliases, assistant_term
-from app.llm.factory import create_provider
-from app.llm.provider import LLMProvider, LLMProviderError
+from app.integrations.mcp_server import encode_context, run_stdio
 from app.logging_config import configure_logging
 from app.sessions.guide import InterviewGuideStore
 from app.sessions.importer import AudioImportError, AudioImportService
@@ -102,6 +102,14 @@ class Runtime:
     session_service: SessionService
 
 
+def _context_service(runtime: Runtime) -> SessionContextService:
+    return SessionContextService(
+        runtime.settings,
+        runtime.sessions,
+        TranscriptRepository(runtime.database),
+    )
+
+
 def _runtime(*, load_ai_credentials: bool = True) -> Runtime:
     settings = Settings.from_env(load_ai_credentials=load_ai_credentials)
     settings.ensure_directories()
@@ -136,11 +144,10 @@ def _transcription_service(
 
 def _analysis_service(
     runtime: Runtime,
-    provider: LLMProvider | None = None,
+    provider: Any = None,
 ) -> AnalysisService:
     return AnalysisService(
-        runtime.sessions,
-        TranscriptRepository(runtime.database),
+        _context_service(runtime),
         AnalysisRepository(runtime.database),
         provider,
     )
@@ -268,7 +275,7 @@ def doctor(
     ] = False,
 ) -> None:
     """Diagnostica el sistema sin instalar ni modificar dependencias."""
-    runtime = _runtime()
+    runtime = _runtime(load_ai_credentials=False)
     checks = run_doctor(runtime.settings, probe_mic=not skip_mic_check)
     table = Table(title="HayVoz — doctor")
     table.add_column("Estado")
@@ -594,6 +601,37 @@ def transcript(
 
 
 @app.command()
+def context(
+    session_id: Annotated[str, typer.Argument(help="ID completo de la sesión.")],
+    recent_segments: Annotated[
+        int,
+        typer.Option("--recent-segments", min=1, max=1000),
+    ] = 20,
+) -> None:
+    """Imprime hechos locales de una sesión como JSON, sin análisis generativo."""
+    runtime = _runtime(load_ai_credentials=False)
+    try:
+        value = _context_service(runtime).get_session_context(
+            session_id, recent_segments=recent_segments
+        )
+    except SessionContextError as error:
+        console.print(f"[red]No se pudo leer el contexto:[/red] {error}")
+        raise typer.Exit(1) from error
+    console.print(encode_context(value))
+
+
+@app.command("mcp")
+def mcp_command() -> None:
+    """Inicia el servidor MCP local experimental y read-only por stdio."""
+    runtime = _runtime(load_ai_credentials=False)
+    try:
+        run_stdio(_context_service(runtime))
+    except (RuntimeError, SessionContextError) as error:
+        console.print(f"[red]No se pudo iniciar MCP:[/red] {error}", file=sys.stderr)
+        raise typer.Exit(1) from error
+
+
+@app.command()
 def assistant(
     session_id: Annotated[str, typer.Argument(help="ID de una sesión Assistant.")],
     watch: Annotated[
@@ -711,7 +749,7 @@ def analyze(
     ] = False,
 ) -> None:
     """Revisa o envía texto al proveedor configurado para generar análisis."""
-    runtime = _runtime()
+    runtime = _runtime(load_ai_credentials=True)
     service = _analysis_service(runtime)
     try:
         preview = service.preview(session_id)
@@ -757,6 +795,9 @@ def analyze(
         raise typer.Exit(1)
 
     try:
+        from app.integrations.openai import create_provider
+        from app.llm.provider import LLMProviderError
+
         provider = create_provider(runtime.settings)
         service = _analysis_service(runtime, provider)
         with console.status(f"Analizando texto con {provider.provider_name}..."):

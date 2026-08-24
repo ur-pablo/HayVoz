@@ -2,6 +2,7 @@ import pytest
 
 from app.analysis.models import Analysis, AnalysisType
 from app.analysis.service import AnalysisService, AnalysisServiceError
+from app.core.session_context import SessionContextService
 from app.sessions.service import SessionService
 from app.storage.analysis_repository import AnalysisRepository
 from app.storage.database import Database
@@ -31,7 +32,11 @@ def _service_with_transcript(settings, repository, *, local_only=False, provider
     analyses = AnalysisRepository(database)
     return (
         session,
-        AnalysisService(repository, transcripts, analyses, provider),
+        AnalysisService(
+            SessionContextService(settings, repository, transcripts),
+            analyses,
+            provider,
+        ),
         analyses,
     )
 
@@ -101,8 +106,11 @@ def test_provider_failure_preserves_previous_analysis(settings, repository) -> N
         ],
     )
     failing = AnalysisService(
-        repository,
-        TranscriptRepository(Database(settings.database_path)),
+        SessionContextService(
+            settings,
+            repository,
+            TranscriptRepository(Database(settings.database_path)),
+        ),
         analyses,
         FakeLLMProvider(fail=True),
     )

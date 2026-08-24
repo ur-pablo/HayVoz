@@ -9,6 +9,10 @@ and semantic versioning.
 
 - Canonical semantic version source, synchronized package/browser version
   checker and updater, and `hayvoz --version`.
+- Fact-only `SessionContextService`, `hayvoz context`, and an experimental
+  read-only `hayvoz mcp` stdio boundary.
+- Optional `openai` and `mcp` package extras; local Core installation no longer
+  requires the OpenAI SDK.
 - Topic-branch and pull-request workflow with a privacy-aware PR template.
 - Tag-triggered release validation, distribution builds, checksums, and GitHub
   release publication.
@@ -17,6 +21,8 @@ and semantic versioning.
 
 - Development now occurs on short-lived branches; `main` is reserved for
   reviewed merges.
+- OpenAI remains functional as an optional integration while local capture,
+  transcription, storage, and context no longer import its concrete provider.
 
 ## [0.8.0] - 2026-08-24
 

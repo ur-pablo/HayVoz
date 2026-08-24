@@ -139,9 +139,6 @@ if [ ! -e "$CONFIG_FILE" ]; then
     {
         printf '%s\n' "# Private HayVoz configuration. Never commit this file."
         printf '%s\n' "HAYVOZ_LANGUAGE="
-        printf '%s\n' "HAYVOZ_AI_PROVIDER=openai"
-        printf '%s\n' "HAYVOZ_AI_API_KEY="
-        printf '%s\n' "HAYVOZ_AI_MODEL="
         printf '%s\n' "WHISPER_MODEL=small"
     } > "$CONFIG_FILE"
 fi

@@ -10,9 +10,10 @@ logs, and model/provider choices.
 1. Local user and filesystem.
 2. FFmpeg and local model runtime.
 3. Explicit model-download source.
-4. User-configured AI provider after consent.
+4. Optional OpenAI integration after consent.
 5. Git/GitHub source distribution, which must never include runtime assets.
 6. Browser and operating-system capture picker after an explicit user gesture.
+7. An explicitly launched local MCP client using the read-only stdio boundary.
 
 ## Threats and controls
 
@@ -33,6 +34,7 @@ logs, and model/provider choices.
 | Forged native capture | fixed Chrome extension origin or signed Safari container/App Group; canonical UUIDs | compromised local user/browser account |
 | Inbox resource exhaustion | 384 KiB chunks, 16,384-chunk capture limit, one queued capture per service loop | many malicious captures can still consume disk |
 | Transcript disclosure to extension | status response allowlist excludes content and paths | session ID remains local metadata |
+| MCP overreach | only six read tools call `SessionContextService`; no shell, mutation, arbitrary path, or listener | a trusted local MCP client can still read explicitly requested private context |
 | Destructive uninstall | uninstall removes integrations/tool only and preserves private data | users must delete retained data separately |
 
 ## Security invariants

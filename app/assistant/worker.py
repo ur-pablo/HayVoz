@@ -12,7 +12,6 @@ from app.assistant.service import AssistantService, AssistantServiceError
 from app.audio.assistant_recorder import ChunkAudioStore, ChunkedFFmpegCapture
 from app.audio.recorder import RecorderError
 from app.config import Settings
-from app.llm.factory import create_provider
 from app.llm.provider import LLMProvider, LLMProviderError
 from app.logging_config import configure_logging
 from app.sessions.guide import InterviewGuideStore
@@ -126,6 +125,8 @@ def _provider(
     if local_only:
         return None
     try:
+        from app.integrations.openai import create_provider
+
         return create_provider(settings)
     except LLMProviderError:
         logger.warning(

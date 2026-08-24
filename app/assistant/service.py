@@ -7,9 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from app.assistant.models import AssistantUpdate
+from app.core.session_context import SessionContextError, SessionContextService
 from app.llm.contracts import AssistantRequest, TranscriptTurn
 from app.llm.provider import LLMProvider, LLMProviderError
-from app.sessions.guide import InterviewGuideError, InterviewGuideStore
+from app.sessions.guide import InterviewGuideStore
 from app.sessions.models import Session, SessionMode
 from app.storage.assistant_repository import AssistantRepository
 from app.storage.repository import SessionNotFoundError, SessionRepository
@@ -43,6 +44,7 @@ class AssistantService:
         transcriber: Transcriber,
         provider: LLMProvider | None,
         language: str | None = None,
+        context: SessionContextService | None = None,
     ) -> None:
         self.sessions = sessions
         self.transcripts = transcripts
@@ -52,6 +54,9 @@ class AssistantService:
         self.transcriber = transcriber
         self.provider = provider
         self.language = language
+        self.context = context or SessionContextService(
+            guides.settings, sessions, transcripts, guides
+        )
 
     def process_chunk(
         self,
@@ -111,34 +116,34 @@ class AssistantService:
         if session.assistant_analysis_interval_seconds is None:
             raise AssistantServiceError("La sesión no tiene intervalo configurado.")
 
-        recent = self.transcripts.list_recent_for_session(
-            session_id,
-            limit=session.assistant_last_segments,
-        )
+        try:
+            recent = self.context.get_recent_segments(
+                session_id,
+                limit=session.assistant_last_segments,
+            )
+            guide = self.context.get_interview_guide(session_id)
+        except SessionContextError as error:
+            raise AssistantServiceError(str(error)) from error
         if not recent:
             return None
         previous = self.updates.latest(session_id)
-        through_end = recent[-1].end
+        through_end = recent[-1]["end"]
         previous_end = previous.through_end if previous else 0.0
         if through_end - previous_end < session.assistant_analysis_interval_seconds:
             return None
 
-        try:
-            guide = self.guides.read(session.guide_path)
-        except InterviewGuideError as error:
-            raise AssistantServiceError(str(error)) from error
         previous_updates = self.updates.list_for_session(session_id, limit=5)
         request = AssistantRequest(
             session_id=session.id,
             title=session.title,
-            interview_guide=guide,
+            interview_guide=guide["content"] if guide else None,
             accumulated_summary=previous.rolling_summary if previous else "",
             recent_turns=[
                 TranscriptTurn(
-                    speaker=segment.speaker.value,
-                    start=segment.start,
-                    end=segment.end,
-                    text=segment.text,
+                    speaker=segment["speaker"],
+                    start=segment["start"],
+                    end=segment["end"],
+                    text=segment["text"],
                 )
                 for segment in recent
             ],
@@ -167,7 +172,7 @@ class AssistantService:
             suggestion = self.provider.suggest_follow_up(request)
         except LLMProviderError as error:
             raise AssistantServiceError(str(error)) from error
-        total_segments = len(self.transcripts.list_for_session(session_id))
+        total_segments = len(self.context.get_transcript(session_id))
         update = AssistantUpdate(
             session_id=session_id,
             rolling_summary=suggestion.rolling_summary,
@@ -188,10 +193,20 @@ class AssistantService:
         session = self._assistant_session(session_id)
         return AssistantSnapshot(
             session=session,
-            recent_segments=self.transcripts.list_recent_for_session(
-                session_id,
-                limit=transcript_limit,
-            ),
+            recent_segments=[
+                TranscriptSegment(
+                    session_id=session_id,
+                    id=segment["id"],
+                    speaker=segment["speaker"],
+                    start=segment["start"],
+                    end=segment["end"],
+                    text=segment["text"],
+                    confidence=segment["confidence"],
+                )
+                for segment in self.context.get_recent_segments(
+                    session_id, limit=transcript_limit
+                )
+            ],
             latest_update=self.updates.latest(session_id),
         )
 

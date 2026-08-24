@@ -7,15 +7,14 @@
 
 ## 1. Purpose
 
-HayVoz is a privacy-first meeting recorder and interview assistant. It records
-locally, transcribes locally by default, and performs external AI processing
-only after an explicit user decision.
+HayVoz is a local-first meeting capture, transcription, storage, and session
+context layer. It records and transcribes locally and remains fully useful when
+no generative integration is installed. Optional external intelligence consumes
+fact-only session context after an explicit user decision.
 
-This specification defines the evolution from the legacy incremental-interview
-feature to a multilingual Assistant capability, introduces provider credentials through
-environment-backed private configuration, adds an optional operating-system
-user service, establishes a zero-first-party-tracking policy, and prepares the
-project for public distribution under GPLv3.
+This specification defines the local Core, the optional OpenAI integration, the
+experimental read-only MCP boundary, an optional operating-system user service,
+a zero-first-party-tracking policy, and public distribution under GPLv3.
 
 ## 2. Interpretation of confidentiality and GPLv3
 
@@ -29,24 +28,22 @@ modified program source, not the private files processed by a user.
 
 ## 3. Goals
 
-1. Replace the legacy feature name with Assistant across public and internal APIs.
-2. Localize the word “Assistant” according to the configured or detected locale
-   without translating the entire application in this release.
-3. Keep stable, language-neutral internal identifiers and persistence values.
-4. Load AI provider credentials from process environment or a private local
-   configuration file, with process environment taking precedence.
-5. Keep every AI request opt-in, text-only, stateless, and non-persistent at the
-   provider API when the provider supports that control.
-6. Provide an optional per-user operating-system service with no listening port.
-7. Make application data live outside the source checkout by default.
-8. Establish documentation, contribution, security, privacy, licensing, release,
+1. Keep capture, transcription, sessions, storage, guides, and context useful
+   without an LLM or API key.
+2. Keep stable, language-neutral internal identifiers and persistence values.
+3. Expose fact-only session context through one stable Core service.
+4. Keep every optional AI request opt-in, text-only, stateless, and non-persistent
+   at the provider API when the provider supports that control.
+5. Provide an optional per-user operating-system service with no listening port.
+6. Make application data live outside the source checkout by default.
+7. Establish documentation, contribution, security, privacy, licensing, release,
    and architecture records suitable for a public repository.
-9. Retain Python while separating platform-specific audio and service behavior.
-10. Publish a validated `main` branch to `ur-pablo/HayVoz`.
-11. Provide an explicit Chrome/Safari audio capture path that automatically
+8. Retain Python while separating platform-specific audio and service behavior.
+9. Publish a validated `main` branch to `ur-pablo/HayVoz`.
+10. Provide an explicit Chrome/Safari audio capture path that automatically
     saves, imports, and transcribes through an allowlisted local native bridge.
-12. Keep session-specific project context in an ignored local file.
-13. Provide an uninstall path that removes executables and integrations while
+11. Keep session-specific project context in an ignored local file.
+12. Provide an uninstall path that removes executables and integrations while
     preserving private user data.
 
 Session tooling reads the local context at the start and updates it before handoff.
@@ -62,8 +59,8 @@ the context file.
 - Running a local HTTP server, opening a port, or exposing IPC to other users.
 - Silently installing an operating-system service.
 - Sending crash reports, analytics, update checks, usage metrics, or device IDs.
-- Supporting arbitrary AI SDKs in-process. The first adapter remains
-  OpenAI/OpenAI-compatible behind a provider boundary.
+- Requiring an AI SDK, API key, or external network for Core operation.
+- Supporting arbitrary AI SDKs or provider frameworks in-process.
 - Encrypting recordings at rest in 0.8.0. Permissions and isolation are enforced;
   application-level encryption is scheduled as a later phase.
 - Reading meeting pages, URLs, participants, cookies, history, or browser storage.
@@ -113,7 +110,7 @@ Existing sessions using the previous mode value are migrated transactionally to
 `assistant`. Existing incremental suggestions and batching configuration are
 copied into the new schema. The old public command and mode are not advertised.
 
-## 6. Configuration and AI credentials
+## 6. Configuration and optional integration credentials
 
 ### 6.1 Configuration precedence
 
@@ -140,7 +137,7 @@ the checkout.
 `HAYVOZ_DATA_DIR` overrides the default. Existing local development data may be
 kept by placing that explicit path in the private config file.
 
-### 6.3 AI environment contract
+### 6.3 Optional OpenAI integration environment contract
 
 - `HAYVOZ_AI_PROVIDER` (`openai` initially)
 - `HAYVOZ_AI_API_KEY`
@@ -162,7 +159,7 @@ installation identifier.
 Network access is limited to explicit user actions:
 
 - downloading a selected local transcription model;
-- sending reviewed text to the configured AI provider after explicit consent;
+- sending reviewed text to the optional OpenAI integration after explicit consent;
 - periodic Assistant suggestions only for a session started with explicit
   external-processing consent.
 
@@ -253,7 +250,26 @@ Chrome uses the unpacked extension during development. Safari uses Apple's Xcode
 WebExtension packaging flow plus an App Group. Neither path is described as
 store-ready or hardware-validated until its manual checks are completed.
 
-## 10. Installer and distribution
+## 10. ChatGPT integration status
+
+HayVoz distinguishes the local protocol implementation from actual availability
+in a ChatGPT product or plan:
+
+| Capability | Status |
+| --- | --- |
+| Local Core: capture, transcription, storage, and context | Supported |
+| OpenAI API integration | Optional / supported |
+| Local `hayvoz mcp` server over stdio | Experimental |
+| Direct ChatGPT connection to a local stdio server | Not supported directly |
+| ChatGPT through a supported remote MCP endpoint or Secure MCP Tunnel | To be validated |
+
+The current MCP command is a development boundary. It does not prove that a
+ChatGPT plan can consume it. OpenAI's current API documentation describes remote
+MCP servers using a `server_url`; private servers may use Secure MCP Tunnel. HayVoz
+does not install a tunnel, open an HTTP port, publish data, or synchronize local
+sessions automatically as part of this release.
+
+## 11. Installer and distribution
 
 `install.sh` targets macOS and Linux shells. It:
 
@@ -275,7 +291,7 @@ Windows installation is documented separately and is prepared for a future
 native PowerShell/MSIX installer. A shell script executed through WSL or Git Bash
 must not be presented as native Windows service installation.
 
-## 11. Documentation deliverables
+## 12. Documentation deliverables
 
 - `README.md`
 - `CHANGELOG.md`
@@ -295,49 +311,58 @@ must not be presented as native Windows service installation.
 - `docs/THREAT_MODEL.md`
 - `docs/adr/README.md` and numbered ADRs
 
-## 12. Acceptance criteria
+## 13. Acceptance criteria
 
-1. No active public feature, symbol, command, setting, file, table, or test uses
-   the previous feature name except an isolated compatibility migration.
-2. `assistant` and the configured localized alias reach the same command.
-3. Changing locale does not change persisted values.
-4. AI credentials load from environment/private config and never enter logs or
+1. Capture, transcription, sessions, storage, guides, `transcript`, and
+   `context` work without OpenAI credentials or SDK installation.
+2. No Core module imports `openai`, `OpenAIProvider`, or an integration factory.
+3. `SessionContextService` is the only read boundary used by external
+   integrations and exposes facts without generative inference.
+4. OpenAI remains functional through the optional `hayvoz[openai]` extra and
+   its absence never makes `doctor` fail.
+5. `hayvoz mcp` is a local stdio server with only read operations and no arbitrary
+   filesystem, shell, session mutation, or recording controls.
+6. The MCP server being functional is reported separately from ChatGPT
+   connectivity, which remains unsupported directly for local stdio.
+7. `assistant` and the configured localized alias reach the same command.
+8. Changing locale does not change persisted values.
+9. AI credentials load from environment/private config and never enter logs or
    SQLite.
-5. External AI calls still require explicit consent and use non-storage controls.
-6. Default data and config paths are outside the checkout.
-7. The system service is optional, user-scoped, port-free, and removable.
-8. macOS tests and smoke checks pass; Windows/Linux command generation is tested.
-9. Secret and privacy scans find no committed credentials or user artifacts.
-10. The repository contains GPLv3 licensing and the listed documentation.
-11. `main` is pushed to the requested GitHub remote with a concise description.
-12. `CONTEXT.md` exists locally, is ignored by Git, and contains no secrets or
+10. External AI calls still require explicit consent and use non-storage controls.
+11. Default data and config paths are outside the checkout.
+12. The system service is optional, user-scoped, port-free, and removable.
+13. macOS tests and smoke checks pass; Windows/Linux command generation is tested.
+14. Secret and privacy scans find no committed credentials or user artifacts.
+15. The repository contains GPLv3 licensing and the listed documentation.
+16. `CONTEXT.md` exists locally, is ignored by Git, and contains no secrets or
     meeting data.
-13. The extension manifest has only `nativeMessaging`, no page/host permissions,
+17. The extension manifest has only `nativeMessaging`, no page/host permissions,
     and its source has no network client or page injection.
-14. A browser-format audio fixture imports transactionally as a completed,
+18. A browser-format audio fixture imports transactionally as a completed,
     private `local_only` session; failed conversion leaves no session or partial
     output.
-15. Stopping an extension capture queues automatic local import/transcription and
+19. Stopping an extension capture queues automatic local import/transcription and
     returns a persisted session result without manual CLI commands.
-16. Browser messages use bounded chunks, canonical UUID paths, an allowlisted
+20. Browser messages use bounded chunks, canonical UUID paths, an allowlisted
     Chrome origin or Safari App Group, and owner-only local files.
-17. Uninstall removes program integrations but preserves all private user data.
+21. Uninstall removes program integrations but preserves all private user data.
 
-## 13. Delivery phases
+## 14. Delivery phases
 
 ### Phase 0 — Specification and governance
 
 This document, ADR structure, privacy boundaries, acceptance criteria.
 
-### Phase 1 — Assistant and i18n capability
+### Phase 1 — Local Core and context boundary
 
-Rename domain, storage, worker, recorder, CLI, tests, and docs. Add stable internal
-identifiers, localized term resolver, aliases, and transactional legacy migration.
+Keep local capture, storage, transcription, guides, and session state independent
+of generative intelligence. Add `SessionContextService`, `hayvoz context`, and
+read-only integration contracts.
 
-### Phase 2 — Private configuration and AI provider credentials
+### Phase 2 — Optional OpenAI integration
 
-Move defaults outside the checkout, add secure config loading, environment-based
-provider factory, permission enforcement, and secret-redaction tests.
+Keep the existing OpenAI API integration functional behind an optional package
+extra and explicit consent. Core tests and imports must not require its SDK.
 
 ### Phase 3 — Platform and system integration
 
@@ -364,12 +389,12 @@ selective export, secure deletion semantics, and backup guidance.
 Message catalogs, translated help and documentation, contributor translation
 workflow, locale QA, and right-to-left validation.
 
-### Phase 8 — Extensible AI and audio backends
+### Phase 8 — Integration and audio evolution
 
-Provider plugins, local LLM adapters, native audio helpers where justified,
-policy-enforced data minimization, and sandboxed extension manifests.
+Validate a supported remote/tunneled MCP deployment if a real consumer requires
+it. Any future audio evolution remains separate from generative integrations.
 
-## 14. Repository description
+## 15. Repository description
 
-Privacy-first, multilingual meeting recorder and interview assistant with local
-transcription, explicit AI consent, and zero first-party tracking.
+Local-first meeting recorder, transcription, and session context layer with
+optional OpenAI and experimental MCP integrations.

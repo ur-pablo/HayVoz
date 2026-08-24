@@ -1,4 +1,9 @@
-"""External LLM boundary; only text crosses it."""
+"""Optional external text-intelligence contracts.
+
+This package intentionally does not import a concrete provider at package import
+time. Core modules may use the provider-neutral contracts without importing the
+OpenAI SDK or provider implementation.
+"""
 
 from app.llm.contracts import (
     AnalysisBundle,
@@ -7,7 +12,6 @@ from app.llm.contracts import (
     AssistantSuggestion,
     TranscriptTurn,
 )
-from app.llm.openai_provider import OpenAIProvider
 from app.llm.provider import LLMProvider, LLMProviderError
 
 __all__ = [
@@ -17,6 +21,17 @@ __all__ = [
     "AssistantSuggestion",
     "LLMProvider",
     "LLMProviderError",
-    "OpenAIProvider",
     "TranscriptTurn",
 ]
+
+
+def __getattr__(name: str):
+    """Keep the historical OpenAIProvider import lazy for compatibility."""
+    if name == "OpenAIProvider":
+        from app.llm.openai_provider import OpenAIProvider
+
+        return OpenAIProvider
+    raise AttributeError(name)
+
+
+__all__.append("OpenAIProvider")

@@ -40,6 +40,8 @@ def test_cli_help_lists_phase_one_commands() -> None:
         "import-audio",
         "transcribe",
         "transcript",
+        "context",
+        "mcp",
         "analyze",
         "assistant",
         "report",

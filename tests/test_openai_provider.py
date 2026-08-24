@@ -3,6 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
+pytest.importorskip("openai")
+
 from app.llm.contracts import AnalysisRequest, AssistantRequest, TranscriptTurn
 from app.llm.openai_provider import OpenAIProvider
 from app.llm.provider import LLMProviderError

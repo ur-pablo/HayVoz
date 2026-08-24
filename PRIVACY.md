@@ -46,4 +46,6 @@ boundary.
 
 Users choose the data directory, may operate fully local-only, can uninstall the
 browser bridge, service, or program without deleting data, and can delete or back
-up their local files directly.
+up their local files directly. The experimental MCP server returns data only in
+response to explicit read requests and does not publish, synchronize, or mutate
+local data.

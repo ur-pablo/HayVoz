@@ -13,9 +13,11 @@ Copy `.env.example`, add only the values you need, and restrict the file to the
 current user (`chmod 600` on macOS/Linux). The parser supports `KEY=value`, quoted
 values, comments, and optional `export`; it does not execute shell expressions.
 
-AI variables use the `HAYVOZ_AI_*` contract. Environment variables override file
-values, allowing secret managers and service environments without changing disk
-configuration. Secrets are marked non-representable and are never persisted.
+The local Core needs no AI variables. The optional OpenAI integration uses the
+`HAYVOZ_AI_*` contract. Environment variables override file values, allowing
+secret managers and service environments without changing disk configuration.
+Secrets are marked non-representable and are never persisted. Install the
+optional SDK only when needed with `pip install "hayvoz[openai]"`.
 
 `HAYVOZ_DATA_DIR` selects the private data root. Changing it does not move old
 data automatically; move the directory while HayVoz is stopped, then update the

@@ -1,8 +1,9 @@
 # HayVoz
 
-Privacy-first meeting recorder and multilingual interview assistant. HayVoz
-records locally, transcribes locally with `faster-whisper`, and contacts a
-configured AI provider only after explicit consent.
+Local-first meeting recorder, transcription, and session context layer. HayVoz
+records locally, transcribes locally with `faster-whisper`, and remains fully
+functional without an LLM or API key. Optional integrations expose context to
+OpenAI or MCP clients.
 
 > Status: macOS is hardware-validated. Windows and Linux platform adapters are
 > experimental until hardware validation and release packaging are completed.
@@ -15,7 +16,7 @@ configured AI provider only after explicit consent.
   fingerprinting, remote logging, or silent update checks.
 - Local by default: audio, transcripts, guides, analyses, logs, and credentials
   remain in private per-user directories.
-- Explicit network use: only model download and consented AI text processing.
+- Explicit network use: only model download and consented optional AI text processing.
 - Audio is never sent to the AI provider by HayVoz.
 - No listening port, web server, or remotely accessible control surface.
 - GPLv3-or-later source code; private user data is not part of the licensed
@@ -34,7 +35,8 @@ documented in [PRIVACY.md](PRIVACY.md) and [docs/THREAT_MODEL.md](docs/THREAT_MO
 - Approximately 1.5 GiB of free RAM for the default `small` Whisper model.
 - BlackHole or another explicitly configured loopback only when macOS system
   audio capture is needed.
-- AI provider credentials only for optional external analysis/suggestions.
+- OpenAI SDK only for optional external analysis/suggestions:
+  `pip install "hayvoz[openai]"`.
 
 ## Install
 
@@ -79,11 +81,15 @@ HAYVOZ_FFMPEG=ffmpeg
 HAYVOZ_AUDIO_BACKEND=avfoundation
 HAYVOZ_AUDIO_DEVICE=0
 
+Optional OpenAI integration:
+
+```text
 HAYVOZ_AI_PROVIDER=openai
 HAYVOZ_AI_API_KEY=
 HAYVOZ_AI_MODEL=
 HAYVOZ_AI_BASE_URL=
 HAYVOZ_AI_TIMEOUT_SECONDS=60
+```
 
 WHISPER_MODEL=small
 WHISPER_LANGUAGE=
@@ -176,6 +182,44 @@ uv run hayvoz analyze SESSION_ID
 uv run hayvoz analyze SESSION_ID --confirm-send
 uv run hayvoz report SESSION_ID
 ```
+
+For the optional OpenAI integration, install its extra first:
+
+```bash
+uv sync --extra openai
+```
+
+## Architecture and context integration
+
+```text
+┌─────────────────────────────────────┐
+│             HayVoz Core             │
+│ Audio → faster-whisper → SQLite     │
+│                         │           │
+│              SessionContextService  │
+└─────────────────────────┬───────────┘
+                          │
+             ┌────────────┴────────────┐
+             │                         │
+      OpenAI API (optional)      MCP (experimental)
+```
+
+The Core does not summarize, detect decisions, infer pain points, or require an
+LLM. Use the fact-only context boundary locally:
+
+```bash
+uv run hayvoz context SESSION_ID
+uv run --extra mcp hayvoz mcp
+```
+
+`hayvoz mcp` is a local read-only development server over stdio. A working local
+MCP server does not mean ChatGPT is connected to it. OpenAI's current integration
+documentation describes remote MCP servers using a `server_url`; private
+deployments may use Secure MCP Tunnel. ChatGPT Plus and OpenAI API billing are
+separate products and access paths, so this repository does not claim that a
+particular ChatGPT plan can consume HayVoz yet.
+
+Integration status is tracked in [SPEC.md](SPEC.md#10-chatgpt-integration-status).
 
 ## Optional operating-system extension
 

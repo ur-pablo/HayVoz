@@ -6,13 +6,11 @@ import json
 import logging
 from dataclasses import dataclass
 
-from app.analysis.context import build_analysis_request, transcript_character_count
 from app.analysis.models import Analysis, AnalysisType
+from app.core.session_context import SessionContextError, SessionContextService
 from app.llm.contracts import AnalysisBundle, AnalysisRequest
 from app.llm.provider import LLMProvider, LLMProviderError
 from app.storage.analysis_repository import AnalysisRepository
-from app.storage.repository import SessionNotFoundError, SessionRepository
-from app.storage.transcript_repository import TranscriptRepository
 
 logger = logging.getLogger(__name__)
 
@@ -35,31 +33,41 @@ class AnalysisPreview:
 class AnalysisService:
     def __init__(
         self,
-        sessions: SessionRepository,
-        transcripts: TranscriptRepository,
+        context: SessionContextService,
         analyses: AnalysisRepository,
         provider: LLMProvider | None = None,
     ) -> None:
-        self.sessions = sessions
-        self.transcripts = transcripts
+        self.context = context
         self.analyses = analyses
         self.provider = provider
 
     def preview(self, session_id: str) -> AnalysisPreview:
         try:
-            session = self.sessions.get(session_id)
-        except SessionNotFoundError as error:
-            raise AnalysisServiceError(f"No existe la sesión {session_id}.") from error
-        segments = self.transcripts.list_for_session(session_id)
+            session = self.context.get_session(session_id)
+            segments = self.context.get_transcript(session_id)
+        except SessionContextError as error:
+            raise AnalysisServiceError(str(error)) from error
         if not segments:
             raise AnalysisServiceError(
                 "La sesión no tiene transcripción. Ejecuta primero 'hayvoz transcribe'."
             )
-        request = build_analysis_request(session, segments)
+        request = AnalysisRequest(
+            session_id=session["id"],
+            title=session["title"],
+            turns=[
+                {
+                    "speaker": segment["speaker"],
+                    "start": segment["start"],
+                    "end": segment["end"],
+                    "text": segment["text"],
+                }
+                for segment in segments
+            ],
+        )
         return AnalysisPreview(
             request=request,
-            local_only=session.local_only,
-            character_count=transcript_character_count(request),
+            local_only=session["local_only"],
+            character_count=sum(len(turn.text) for turn in request.turns),
         )
 
     def analyze(
